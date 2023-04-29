@@ -12,11 +12,13 @@ import { getMe, login, register } from "./controllers/UserController.js";
 import {
   create,
   getAll,
+  getLastTags,
   getOne,
   remove,
   update,
 } from "./controllers/PostController.js";
-import {checkAuth, handleValidationErrors} from "./utils/index.js";
+import { checkAuth, handleValidationErrors } from "./utils/index.js";
+import cors from "cors";
 
 mongoose
   .connect(
@@ -39,6 +41,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.use(express.json());
+app.use(cors());
 app.use("/uploads", express.static("uploads"));
 
 app.post("/auth/login", loginValidation, handleValidationErrors, login);
@@ -58,7 +61,10 @@ app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   });
 });
 
+app.get("/tags", getLastTags);
+
 app.get("/posts", getAll);
+app.get("/posts/tags", getAll);
 app.get("/posts/:id", getOne);
 app.post(
   "/posts",

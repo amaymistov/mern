@@ -1,5 +1,20 @@
 import PostModel from "../models/Post.js";
 
+export const getLastTags = async (req, res) => {
+  try {
+    const posts = await PostModel.find().limit(5).exec();
+
+    const tags = await posts.map((obj) => obj.tags).flat(0, 5);
+
+    res.json(tags);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить теги",
+    });
+  }
+};
+
 export const getAll = async (req, res) => {
   try {
     const posts = await PostModel.find().populate("user").exec();
@@ -20,7 +35,7 @@ export const getOne = async (req, res) => {
       { _id: postId },
       { $inc: { viewsCount: 1 } },
       { returnDocument: "after" }
-    );
+    ).populate('user');
     if (!updatePost) {
       return res.status(404).json({
         message: "Статья не найдена",
@@ -62,9 +77,9 @@ export const create = async (req, res) => {
   try {
     const doc = new PostModel({
       title: req.body.title,
-      text: req.body.title,
+      text: req.body.text,
       imageUrl: req.body.imageUrl,
-      tags: req.body.tags,
+      tags: req.body.tags.split(','),
       user: req.userId,
     });
 
@@ -91,7 +106,7 @@ export const update = async (req, res) => {
         text: req.body.text,
         imageUrl: req.body.imageUrl,
         user: req.userId,
-        tags: req.body.tags,
+        tags: req.body.tags.split(','),
       }
     );
     res.json({
